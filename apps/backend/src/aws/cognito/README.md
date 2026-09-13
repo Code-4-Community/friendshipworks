@@ -6,14 +6,14 @@ Some key concepts you'll need to know are:
 1. **Unauthenticated user hits the app.** A user opens the frontend with no token. If they call a protected (Non Public) backend route, `CognitoJWTGuard` finds no `Authorization: Bearer <token>` header and responds `401 Unauthorized`.
 
 2. **User authenticates with Cognito** The frontend sends the user's credentials to Cognito. Cognito verifies the credentials and *authenticates* the user. This happens entirely between the client and Cognito. Our backend is not involved and never sees the password.
-   - On the frontend this login flow is run by [AWS Amplify](https://docs.amplify.aws/). If auth is enabled, `apps/frontend/src/auth/auth.config.ts` (`configureAmplify()`) points Amplify at the user pool, and `apps/frontend/src/main.tsx` wraps the app in Amplify's `<Authenticator>` login gate. 
+   - On the frontend this login flow is run by [AWS Amplify](https://docs.amplify.aws/). If auth is enabled, `apps/mobile-frontend/src/auth/auth.config.ts` (`configureAmplify()`) points Amplify at the user pool, and `apps/mobile-frontend/src/app/_layout.tsx` wraps the app in Amplify's `<Authenticator>` login gate. 
 
 3. **Cognito issues tokens.** On success, Cognito returns separate signed JWTs for the following:
    - **ID token**: describes *who the user is* (identity claims), meant for the frontend.
    - **access token**: the *authorization* credential, meant to be sent to backend APIs and checked by the `CognitoJWTGuard`. (See [Token validation](#token-validation))
    - **refresh token**: used to obtain fresh ID/access tokens when they expire.
 
-4. **Frontend calls the backend with the access token.** The client attaches it on every request as a header: `Authorization: Bearer <access_token>`. This is done once, by an axios request interceptor in `apps/frontend/src/api/apiClient.ts`, so individual API methods never deal with tokens:
+4. **Frontend calls the backend with the access token.** The client attaches it on every request as a header: `Authorization: Bearer <access_token>`. This is done once, by an axios request interceptor in `apps/mobile-frontend/src/api/apiClient.ts`, so individual API methods never deal with tokens:
    - it only sends the request with the access token when auth is enabled, so the scaffold still runs with no Cognito setup
    - `fetchAuthSession()` returns the cached access token and silently refreshes it when expired, so the 1 hour token lifetime needs no handling
    - if no one is signed in or if errors occur with fetching the auth session it sends the request unauthenticated and lets the guard answer `401`
@@ -39,7 +39,7 @@ Copy placeholders from the repo root `example.env` into `.env` (or your deployme
 | `COGNITO_CLIENT_ID` | The application you are building's own id linked to Cognito used to validate `client_id` on tokens (**required** unless `AUTH_DISABLED=true`) |
 | `COGNITO_REGION` | AWS region (**optional**) — when unset it is derived from the user pool ID, which is formatted `<region>_<id>` (e.g. `us-east-2_abc123` → `us-east-2`). Set it explicitly only if your pool ID does not encode the region you want. |
 
-`apps/frontend/vite.config.ts` re-exports the same values to the client bundle as `VITE_COGNITO_USER_POOL_ID`, `VITE_COGNITO_USER_POOL_CLIENT_ID`, and `VITE_COGNITO_REGION` at build time, so the client and server always share one source of truth (you never set the `VITE_` variables by hand). Because both sides read the same values, they can't drift out of sync: set the user pool ID and client ID and auth is enforced on the backend *and* the login UI appears on the frontend.
+The mobile frontend (`apps/mobile-frontend`) reads the same Cognito values from environment variables with an `EXPO_PUBLIC_` prefix (e.g. `EXPO_PUBLIC_COGNITO_USER_POOL_ID`, `EXPO_PUBLIC_COGNITO_USER_POOL_CLIENT_ID`, `EXPO_PUBLIC_COGNITO_REGION`), so the client and server always share one source of truth (you never set these variables by hand). Because both sides read the same values, they can't drift out of sync: set the user pool ID and client ID and auth is enforced on the backend *and* the login UI appears on the frontend.
 
 > [!IMPORTANT]
 > **Running with auth off requires an explicit opt-in.** `AUTH_DISABLED=true` is the only thing that turns JWT enforcement off. Anything else that leaves the Cognito config unusable is treated as a misconfiguration and the application **refuses to start**
