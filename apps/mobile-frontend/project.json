@@ -1,0 +1,66 @@
+{
+  "name": "mobile-frontend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/mobile-frontend/src",
+  "projectType": "application",
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/mobile-frontend/**/*.{ts,tsx}"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/mobile-frontend/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "expo start",
+        "cwd": "apps/mobile-frontend"
+      }
+    },
+    "start:web": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "expo start --web",
+        "cwd": "apps/mobile-frontend"
+      }
+    },
+    "start:ios": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "expo start --ios",
+        "cwd": "apps/mobile-frontend"
+      }
+    },
+    "start:android": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "expo start --android",
+        "cwd": "apps/mobile-frontend"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["tsc --noEmit"],
+        "cwd": "apps/mobile-frontend",
+        "forwardAllArgs": false
+      }
+    }
+  },
+  "tags": []
+}
