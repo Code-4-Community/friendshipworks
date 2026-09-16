@@ -5,6 +5,13 @@
   "projectType": "application",
   "tags": [],
   "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/mobile-frontend/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
     "serve": {
       "executor": "@nx/expo:start",
       "dependsOn": ["sync-deps"],
