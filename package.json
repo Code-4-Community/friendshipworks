@@ -21,8 +21,8 @@
   "dependencies": {
     "@aws-amplify/ui-react": "^6.15.4",
     "@aws-sdk/client-cognito-identity-provider": "^3.1058.0",
-    "@aws-sdk/client-sesv2": "^3.1063.0",
     "@aws-sdk/client-s3": "^3.1073.0",
+    "@aws-sdk/client-sesv2": "^3.1063.0",
     "@nestjs/cli": "^11.0.24",
     "@nestjs/common": "^10.0.2",
     "@nestjs/config": "^4.0.4",
@@ -64,6 +64,7 @@
     "@nestjs/testing": "^10.0.2",
     "@nx/cypress": "23.1.0",
     "@nx/eslint-plugin": "22.7.5",
+    "@nx/expo": "22.7.5",
     "@nx/jest": "22.7.5",
     "@nx/react": "23.0.1",
     "@nx/vite": "22.7.5",
