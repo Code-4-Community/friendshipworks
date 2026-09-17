@@ -3,20 +3,20 @@ Some key concepts you'll need to know are:
 - **Authentication (authn)** = *"who are you?"* -> ex: distinguishing a known user from an unknown one
 - **Authorization (authz)** = *"what are you allowed to do?"* -> ex: distinguishing admin access vs normal user access to routes
 
-1. **Unauthenticated user hits the app.** A user opens the frontend with no token. If they call a protected (Non Public) backend route, `CognitoJWTGuard` finds no `Authorization: Bearer <token>` header and responds `401 Unauthorized`.
+1. **Unauthenticated user hits the app.** A user opens the mobile app with no token. If they call a protected (Non Public) backend route, `CognitoJWTGuard` finds no `Authorization: Bearer <token>` header and responds `401 Unauthorized`.
 
-2. **User authenticates with Cognito** The frontend sends the user's credentials to Cognito. Cognito verifies the credentials and *authenticates* the user. This happens entirely between the client and Cognito. Our backend is not involved and never sees the password.
-   - On the frontend this login flow is run by [AWS Amplify](https://docs.amplify.aws/). If auth is enabled, `apps/frontend/src/auth/auth.config.ts` (`configureAmplify()`) points Amplify at the user pool, and `apps/frontend/src/main.tsx` wraps the app in Amplify's `<Authenticator>` login gate. 
+2. **User authenticates with Cognito** The client sends the user's credentials to Cognito. Cognito verifies the credentials and *authenticates* the user. This happens entirely between the client and Cognito. Our backend is not involved and never sees the password.
+   - **This login step is not implemented in the mobile app yet.** AWS Amplify was deliberately not used: Amplify v6 requires native modules and cannot run in Expo Go, which every developer on this project uses. Whatever login flow is chosen must end by handing the access token to `setAccessTokenProvider()` in `apps/mobile-frontend/src/auth/authToken.ts`. Until then the client sends no token and every protected route answers `401`.
 
 3. **Cognito issues tokens.** On success, Cognito returns separate signed JWTs for the following:
-   - **ID token**: describes *who the user is* (identity claims), meant for the frontend.
+   - **ID token**: describes *who the user is* (identity claims), meant for the client.
    - **access token**: the *authorization* credential, meant to be sent to backend APIs and checked by the `CognitoJWTGuard`. (See [Token validation](#token-validation))
    - **refresh token**: used to obtain fresh ID/access tokens when they expire.
 
-4. **Frontend calls the backend with the access token.** The client attaches it on every request as a header: `Authorization: Bearer <access_token>`. This is done once, by an axios request interceptor in `apps/frontend/src/api/apiClient.ts`, so individual API methods never deal with tokens:
-   - it only sends the request with the access token when auth is enabled, so the scaffold still runs with no Cognito setup
-   - `fetchAuthSession()` returns the cached access token and silently refreshes it when expired, so the 1 hour token lifetime needs no handling
-   - if no one is signed in or if errors occur with fetching the auth session it sends the request unauthenticated and lets the guard answer `401`
+4. **The mobile app calls the backend with the access token.** The client attaches it on every request as a header: `Authorization: Bearer <access_token>`. This is done once, by an axios request interceptor in `apps/mobile-frontend/src/api/apiClient.ts`, so individual API methods never deal with tokens:
+   - it attaches a token only when a provider is registered, so the app still runs with no Cognito setup
+   - caching and refreshing the token (they expire after 1 hour) is the registered provider's job, not the interceptor's
+   - if no one is signed in, or if the provider throws, it sends the request unauthenticated and lets the guard answer `401`
 
 5. **The Guard checks the token.** `CognitoJWTGuard` runs on every route (it's registered as a global `APP_GUARD`). For each request it:
    - lets the request through immediately if auth is explicitly disabled (`AUTH_DISABLED=true`) or if the route is marked `@Public()` (intentional bypass)
@@ -30,7 +30,7 @@ So: **every route is protected by default, a request is allowed only if it carri
 
 ## QUICKSTART: 
 
-Copy placeholders from the repo root `example.env` into `.env` (or your deployment secrets). The `COGNITO_*` variables drive **both** the backend and the frontend:
+Copy placeholders from the repo root `example.env` into `.env` (or your deployment secrets). The `COGNITO_*` variables drive the backend:
 
 | Variable | Purpose |
 |----------|---------|
@@ -39,14 +39,14 @@ Copy placeholders from the repo root `example.env` into `.env` (or your deployme
 | `COGNITO_CLIENT_ID` | The application you are building's own id linked to Cognito used to validate `client_id` on tokens (**required** unless `AUTH_DISABLED=true`) |
 | `COGNITO_REGION` | AWS region (**optional**) — when unset it is derived from the user pool ID, which is formatted `<region>_<id>` (e.g. `us-east-2_abc123` → `us-east-2`). Set it explicitly only if your pool ID does not encode the region you want. |
 
-`apps/frontend/vite.config.ts` re-exports the same values to the client bundle as `VITE_COGNITO_USER_POOL_ID`, `VITE_COGNITO_USER_POOL_CLIENT_ID`, and `VITE_COGNITO_REGION` at build time, so the client and server always share one source of truth (you never set the `VITE_` variables by hand). Because both sides read the same values, they can't drift out of sync: set the user pool ID and client ID and auth is enforced on the backend *and* the login UI appears on the frontend.
+The `COGNITO_*` variables above are **backend-only**. There is no env bridge from the repo-root `.env` to the mobile client: the Expo CLI loads dotenv files relative to the Expo project root, so client-side configuration lives in `apps/mobile-frontend/.env` (see `apps/mobile-frontend/example.env`) and must be prefixed `EXPO_PUBLIC_` to be inlined into the bundle. The mobile app does not currently read any Cognito variable, because it has no login flow yet — setting the pool ID and client ID here enforces auth on the backend only.
 
 > [!IMPORTANT]
 > **Running with auth off requires an explicit opt-in.** `AUTH_DISABLED=true` is the only thing that turns JWT enforcement off. Anything else that leaves the Cognito config unusable is treated as a misconfiguration and the application **refuses to start**
 
 > [!WARNING]
 > Disabling auth is a convenience for local development, **not** a safe production state. `example.env` ships with `AUTH_DISABLED=true` so that a fresh clone runs without any Cognito setup — remove it (or set it to `false`) as soon as you wire up a real user pool, and make sure it is never set in a deployed environment. If Cognito variables are present *and* `AUTH_DISABLED=true`, `CognitoModule` emits a second warning that the configuration is being ignored, which is the case worth grepping deploy logs for.
-> The frontend deliberately does **not** have a mirror of this flag as the security boundary is entirely server-side and it cannot enforce anything
+> The client deliberately does **not** have a mirror of this flag as the security boundary is entirely server-side and it cannot enforce anything
 
 ## `AUTH_DISABLED`
 
@@ -134,7 +134,7 @@ The guard validates access tokens by
 - payload shape: `isAccessTokenPayload` rejects the token unless the required claims are present and well-typed — `sub`/`iss` are strings, `token_use === 'access'`, `client_id` is a string, `exp`/`iat` are numbers, and `cognito:groups` (if present) is an array of strings.
 
 > [!IMPORTANT]
-> The scaffold accepts access tokens only by design. Backend APIs are resource servers and authorize requests using access tokens; ID tokens are for the frontend to establish who the user is. 
+> The scaffold accepts access tokens only by design. Backend APIs are resource servers and authorize requests using access tokens; ID tokens are for the client to establish who the user is. 
 
 > [!WARNING]
 > Common Confusion: Do not use the ID token for API authorization. ID tokens are intended for your client application to establish who the user is; passing them to a backend API exposes identity claims unnecessarily and confuses authentication with authorization. Backend APIs should validate access tokens only. 
