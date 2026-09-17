@@ -14,7 +14,6 @@
     },
     "serve": {
       "executor": "@nx/expo:start",
-      "dependsOn": ["sync-deps"],
       "options": {}
     },
     "test": {
