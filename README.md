@@ -1,4 +1,4 @@
-# Scaffolding
+# FriendshipWorks Repository
 
 <a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 
@@ -88,6 +88,30 @@ To run both the frontend and backend with one command:
 ```
 nx run-many -t serve -p frontend backend
 ```
+
+## Running the mobile app (Expo)
+
+The mobile app (`apps/mobile-frontend`) is a React Native + Expo app managed via the `@nx/expo` Nx plugin.
+
+**Prerequisites:**
+- [Expo Go](https://expo.dev/go) installed on a physical iOS/Android device, **or** Xcode (iOS Simulator) / Android Studio (Android Emulator) if you want a simulator/emulator instead.
+
+**Start the dev server:**
+
+```
+nx serve mobile-frontend
+```
+
+This starts the Metro bundler and prints a QR code — scan it with Expo Go, or press `i`/`a` in the terminal to launch the iOS Simulator / Android Emulator. (Shortcut: `yarn mobile`.)
+
+To run directly on a specific platform:
+
+```
+nx run-ios mobile-frontend
+nx run-android mobile-frontend
+```
+
+> Note: `nx build mobile-frontend` triggers a cloud **EAS build** (requires `eas login` and an Expo account) — it is not a local bundle build. For local export/validation (what CI runs), use `nx export mobile-frontend`.
 
 ## Swagger
 

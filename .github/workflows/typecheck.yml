@@ -1,4 +1,4 @@
-name: Backend build
+name: Typecheck
 
 on:
   push:
@@ -11,28 +11,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: backend-build
+  typecheck:
+    name: typecheck
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
 
-    - name: Use NodeJS 24.x
+    - name: Use Node.js 24.x
       uses: actions/setup-node@v5
       with:
         node-version: 24.x
         cache: 'yarn'
 
-    - name: Create .env file
-      run: |
-
-        echo "AWS_SECRET_ACCESS_KEY=dummy" >> .env
-        echo "AWS_ACCESS_KEY_ID=dummy" >> .env
-        echo "AWS_REGION=us-east-2" >> .env
-
     - name: Install Dependencies
       run: yarn install --frozen-lockfile
 
-    - name: Build backend
-      run: npx nx build backend
+    - name: Derive appropriate SHAs for nx affected
+      uses: nrwl/nx-set-shas@v4
+
+    - name: Run typecheck
+      run: npx nx affected -t typecheck

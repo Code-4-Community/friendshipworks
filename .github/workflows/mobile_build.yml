@@ -1,4 +1,4 @@
-name: Backend build
+name: Mobile frontend build
 
 on:
   push:
@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build:
-    name: backend-build
+    name: mobile-build
     runs-on: ubuntu-latest
 
     steps:
@@ -24,15 +24,8 @@ jobs:
         node-version: 24.x
         cache: 'yarn'
 
-    - name: Create .env file
-      run: |
-
-        echo "AWS_SECRET_ACCESS_KEY=dummy" >> .env
-        echo "AWS_ACCESS_KEY_ID=dummy" >> .env
-        echo "AWS_REGION=us-east-2" >> .env
-
     - name: Install Dependencies
       run: yarn install --frozen-lockfile
 
-    - name: Build backend
-      run: npx nx build backend
+    - name: Export mobile frontend (build validation)
+      run: npx nx export mobile-frontend

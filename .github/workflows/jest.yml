@@ -6,16 +6,20 @@ on:
   pull_request:
     branches: ['main']
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    
+    name: test
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Use NodeJS 24.x
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version: 24.x
         cache: 'yarn'
@@ -29,7 +33,7 @@ jobs:
         echo "AWS_REGION=us-east-2" >> .env
 
     - name: Install Dependencies
-      run: yarn install
+      run: yarn install --frozen-lockfile
 
-    - name: Run Jest tests 
+    - name: Run Jest tests
       run: yarn test
