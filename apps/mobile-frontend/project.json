@@ -20,7 +20,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/mobile-frontend/jest.config.cts"
+        "jestConfig": "apps/mobile-frontend/jest.config.js"
       }
     },
     "typecheck": {
