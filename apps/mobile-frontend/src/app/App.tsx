@@ -32,7 +32,7 @@ export const App = () => {
             testID="heading"
             role="heading"
           >
-            Welcome MobileFrontend 👋
+            Welcome FriendshipWorks 👋
           </Text>
         </View>
         <View style={styles.section}>
@@ -433,7 +433,7 @@ export const App = () => {
               <Text
                 style={[styles.textXS, styles.monospace, styles.marginBottomMd]}
               >
-                nx build MobileFrontend
+                nx build mobile-frontend
               </Text>
               <Text style={[styles.textXS, styles.monospace, styles.comment]}>
                 # Test
@@ -441,13 +441,13 @@ export const App = () => {
               <Text
                 style={[styles.textXS, styles.monospace, styles.marginBottomMd]}
               >
-                nx test MobileFrontend
+                nx test mobile-frontend
               </Text>
               <Text style={[styles.textXS, styles.monospace, styles.comment]}>
                 # Lint
               </Text>
               <Text style={[styles.textXS, styles.monospace]}>
-                nx lint MobileFrontend
+                nx lint mobile-frontend
               </Text>
               <Text style={[styles.textXS, styles.monospace, styles.comment]}>
                 # Run them together!
@@ -455,7 +455,7 @@ export const App = () => {
               <Text
                 style={[styles.textXS, styles.monospace, styles.marginBottomMd]}
               >
-                nx run-many -p MobileFrontend -t build test lint
+                nx run-many -p mobile-frontend -t build test lint
               </Text>
             </View>
 
@@ -480,7 +480,7 @@ export const App = () => {
             </View>
             <View style={[styles.codeBlock, styles.marginBottomLg]}>
               <Text style={[styles.textXS, styles.monospace]}>
-                nx show project MobileFrontend
+                nx show project mobile-frontend
               </Text>
             </View>
             <View style={styles.listItem}>
