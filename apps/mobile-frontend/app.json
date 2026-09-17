@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "MobileFrontend",
-    "slug": "mobile-frontend",
+    "name": "FriendshipWorks",
+    "slug": "friendshipworks-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile-frontend",
+    "scheme": "friendshipworks",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
