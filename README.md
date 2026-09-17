@@ -8,7 +8,7 @@
 
 Clone this repo and run `yarn` at the root to install this project's dependencies.
 
-You can optionally install `nx` globally with `npm install -g nx` - if you don't, you'll just need to prefix the commands below with `npx` (e.g. `npx nx serve frontend`).
+You can optionally install `nx` globally with `npm install -g nx` - if you don't, you'll just need to prefix the commands below with `npx` (e.g. `npx nx serve backend`).
 
 ### Database Setup
 
@@ -67,15 +67,20 @@ yarn migration:revert
 
 ## Start the app
 
-To start the development server run `nx serve frontend`. Open your browser and navigate to http://localhost:4200/. Happy coding!
+FriendshipWorks is a mobile-only app. This workspace has two projects: the NestJS backend and
+the React Native + Expo mobile app.
+
+In two terminals:
+
+```
+nx serve backend          # API on port 3000
+nx serve mobile-frontend  # Metro bundler + Expo Go QR code
+```
+
+Scan the QR code with Expo Go on your phone. See
+[Running the mobile app (Expo)](#running-the-mobile-app-expo) below for setup. Happy coding!
 
 ## Running tasks
-
-To run just the frontend (port 4200):
-
-```
-nx serve frontend
-```
 
 To run just the backend (port 3000):
 
@@ -83,35 +88,122 @@ To run just the backend (port 3000):
 nx serve backend
 ```
 
-To run both the frontend and backend with one command:
-
-```
-nx run-many -t serve -p frontend backend
-```
-
-## Running the mobile app (Expo)
-
-The mobile app (`apps/mobile-frontend`) is a React Native + Expo app managed via the `@nx/expo` Nx plugin.
-
-**Prerequisites:**
-- [Expo Go](https://expo.dev/go) installed on a physical iOS/Android device, **or** Xcode (iOS Simulator) / Android Studio (Android Emulator) if you want a simulator/emulator instead.
-
-**Start the dev server:**
+To run just the mobile app:
 
 ```
 nx serve mobile-frontend
 ```
 
-This starts the Metro bundler and prints a QR code — scan it with Expo Go, or press `i`/`a` in the terminal to launch the iOS Simulator / Android Emulator. (Shortcut: `yarn mobile`.)
+Run them in two separate terminals — the backend and the Metro bundler are both long-running.
 
-To run directly on a specific platform:
+Extra Expo flags are forwarded through, so `nx serve mobile-frontend --clear` starts with a cleared
+bundler cache.
+## Running the mobile app (Expo)
+
+### What is Expo?
+
+[Expo](https://expo.dev) is a toolchain built on top of React Native. Two parts of it matter here:
+
+- **Metro**, the bundler. It compiles `apps/mobile-frontend` into a JavaScript bundle and serves it
+  over your local network while you develop.
+- **Expo Go**, a free sandbox app from the App Store / Play Store. It downloads your bundle from
+  Metro and runs it, so you can see all changes without compiling anything natively (No XCode needed!!).
+
+### 1. Create an Expo account
+
+Sign up at [expo.dev/signup](https://expo.dev/signup), then log in from the repo:
 
 ```
-nx run-ios mobile-frontend
-nx run-android mobile-frontend
+npx expo login
 ```
 
-> Note: `nx build mobile-frontend` triggers a cloud **EAS build** (requires `eas login` and an Expo account) — it is not a local bundle build. For local export/validation (what CI runs), use `nx export mobile-frontend`.
+Since everyone hits builds eventually, create the account during setup rather than later.
+
+### 2. Install Expo Go on your phone
+
+Get it from the [App Store or Play Store](https://expo.dev/go). Your phone and your computer must be
+on the **same Wi-Fi network** — Metro serves the bundle over the LAN.
+
+### 3. Configure the API URL
+
+The mobile app reads its own env file, separate from the backend's:
+
+```
+cp apps/mobile-frontend/example.env apps/mobile-frontend/.env
+```
+
+On a physical phone, `localhost` means *the phone*, so set `EXPO_PUBLIC_API_BASE_URL` to your
+computer's LAN IP (e.g. `http://192.168.1.42:3000`). Find it with `ipconfig getifaddr en0` on macOS
+or `hostname -I` on Linux. The committed `localhost:3000` default is only correct for simulators and
+the web target.
+
+### 4. Start both servers
+
+Two terminals:
+
+```
+nx serve backend          # terminal 1 — API on port 3000
+nx serve mobile-frontend  # terminal 2 — Metro + QR code
+```
+
+### 5. Scan the QR code
+
+Metro prints a QR code in terminal 2.
+
+- **iOS**: scan it with the built-in Camera app, then tap the notification.
+- **Android**: open Expo Go and use **Scan QR code**.
+
+The app downloads and launches in Expo Go. First load takes a few seconds while the bundle builds.
+
+`nx serve mobile-frontend` already selects Expo Go, but if the QR route misbehaves you can press `s`
+in the terminal to toggle between Expo Go and development-build mode. To use a simulator instead
+(requires Xcode / Android Studio), press `i` or `a`.
+
+### 6. See your changes live
+
+Edit any file under `apps/mobile-frontend/src/` and save. **Fast Refresh** pushes the change to your
+phone in about a second, keeping component state where it can. No rebuild, no re-scan.
+
+Useful keys in the Metro terminal:
+
+| Key | Does |
+|---|---|
+| `r` | Full reload (use when Fast Refresh gets confused) |
+| `j` | Open the debugger |
+| `m` | Toggle the dev menu |
+| `?` | List all commands |
+
+Shake the phone (or long-press with three fingers) to open the in-app dev menu.
+
+**Editing `.env` is the exception to live reload.** `EXPO_PUBLIC_*` values are inlined when Metro
+*transforms* your code, and those transforms are cached — so a changed env value won't appear until
+you restart with a cleared cache:
+
+```
+nx serve mobile-frontend --clear
+```
+
+### Nx targets for the mobile app
+
+```
+nx lint mobile-frontend
+nx test mobile-frontend
+nx typecheck mobile-frontend
+nx export mobile-frontend         # local bundle validation (what CI runs)
+nx run-ios mobile-frontend        # needs Xcode
+nx run-android mobile-frontend    # needs Android Studio
+```
+
+> **Why `serve`/`start` are defined explicitly in `project.json`:** `@nx/expo`'s own `serve`, `start`
+> and web executors `fork()` `@expo/cli/build/bin/cli`, a path `@expo/cli@57` no longer ships, so
+> they fail with `Cannot find module`. Both targets are therefore overridden to run `expo start --go`
+> as a plain command instead. The plugin-inferred targets above (`export`, `run-ios`, `run-android`)
+> were already plain shell commands, so they were never affected. Once Nx reaches 23.1+ the
+> overrides can likely be dropped, along with the `config.projectRoot` workaround in
+> `metro.config.js`.
+
+> **`nx build mobile-frontend` is not a local build** — it triggers a cloud **EAS build**, requiring
+> `npx expo login` and an Expo account. For local validation use `nx export mobile-frontend`.
 
 ## Swagger
 
@@ -140,3 +232,7 @@ The backend can expose [Swagger UI](https://github.com/swagger-api/swagger-ui) (
 Run `git submodule update --remote` to pull the latest changes from the component library
 
 When cloning the repo, make sure to add the `--recurse-modules` flag to also clone the component library submodule (e.g. `git clone --recurse-submodules https://github.com/Code-4-Community/scaffolding.git` for the `scaffolding` repo)
+
+> **Note:** the `shared/` submodule is currently **not used by any app**. Its only consumer was the
+> web frontend that has since been removed. It is kept for now in case the mobile app adopts the
+> shared component library later; you can safely skip initializing it.
