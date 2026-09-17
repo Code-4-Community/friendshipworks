@@ -13,8 +13,20 @@
       }
     },
     "serve": {
-      "executor": "@nx/expo:start",
-      "options": {}
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": {
+        "cwd": "apps/mobile-frontend",
+        "command": "expo start --go"
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": {
+        "cwd": "apps/mobile-frontend",
+        "command": "expo start --go"
+      }
     },
     "test": {
       "executor": "@nx/jest:jest",
