@@ -7,3 +7,8 @@ test('renders correctly', () => {
   const { getByTestId } = render(<App />);
   expect(getByTestId('heading')).toHaveTextContent(/Welcome/);
 });
+
+test('renders the FriendshipWorks logo in the header', () => {
+  const { getByTestId } = render(<App />);
+  expect(getByTestId('brand-logo')).toBeOnTheScreen();
+});

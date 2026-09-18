@@ -1,6 +1,18 @@
 ### ℹ️ Issue
 
-Closes <issue>
+Closes DEV-000
+
+<!--
+Replace DEV-000 with the Linear issue ID. Linear links this PR automatically as long as the
+ID appears in the branch name or here, so prefer `Copy git branch name` (Cmd/Ctrl + Shift + .)
+on the Linear issue when you start work.
+
+Which verb you use decides what happens on merge:
+  • Moves the issue to Done: close(s), fix(es), resolve(s), complete(s), implement(s)
+  • Links only, no status change: ref, references, part of, contributes to
+
+Use the second set when a ticket needs more than one PR — then close it from the last one.
+-->
 
 ### 📝 Description
 

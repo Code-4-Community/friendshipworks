@@ -5,6 +5,7 @@ import {
   ScrollView,
   View,
   Text,
+  Image,
   StatusBar,
   TouchableOpacity,
   Linking,
@@ -25,14 +26,21 @@ export const App = () => {
         contentInsetAdjustmentBehavior="automatic"
         style={styles.scrollView}
       >
-        <View style={styles.section}>
-          <Text style={styles.textLg}>Hello there,</Text>
+        <View style={[styles.section, styles.header]}>
+          <Image
+            source={require('../../assets/images/friendshipworks-logo-orange.png')}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityRole="image"
+            accessibilityLabel="FriendshipWorks"
+            testID="brand-logo" // to match test in app.spec.tsx
+          />
           <Text
-            style={[styles.textXL, styles.appTitleText]}
+            style={[styles.textLg, styles.headerGreeting]}
             testID="heading"
             role="heading"
           >
-            Welcome FriendshipWorks 👋
+            Welcome, Volunteer 👋
           </Text>
         </View>
         <View style={styles.section}>
@@ -662,6 +670,18 @@ const styles = StyleSheet.create({
   appTitleText: {
     paddingTop: 12,
     fontWeight: '500',
+  },
+  header: {
+    alignItems: 'center',
+  },
+  logo: {
+    width: '100%',
+    maxWidth: 320,
+    aspectRatio: 1150 / 259,
+  },
+  headerGreeting: {
+    marginTop: 20,
+    color: '#6b7280',
   },
   hero: {
     borderRadius: 12,
