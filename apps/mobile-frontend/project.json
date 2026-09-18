@@ -13,19 +13,18 @@
       }
     },
     "serve": {
+      // Expo Go is the team's dev target: any OS, any phone, no Xcode or
+      // Android Studio. @nx/expo/plugin's inferred `serve` is `expo start --web`
+      // (a browser) and its inferred `start` uses the @nx/expo:start executor,
+      // deprecated in Nx 23 and removed in Nx 24. So this target is deliberate,
+      // not a workaround. `expo start` picks Expo Go on its own: @expo/cli
+      // auto-detects via hasDirectDevClientDependency(), so it follows suit if
+      // expo-dev-client is ever added, which a hardcoded --go would not.
       "executor": "nx:run-commands",
       "continuous": true,
       "options": {
         "cwd": "apps/mobile-frontend",
-        "command": "expo start --go"
-      }
-    },
-    "start": {
-      "executor": "nx:run-commands",
-      "continuous": true,
-      "options": {
-        "cwd": "apps/mobile-frontend",
-        "command": "expo start --go"
+        "command": "expo start"
       }
     },
     "test": {
